@@ -122,7 +122,7 @@ export default function HomePage() {
     mintTower(tx, MINT_COST * 1_000_000_000);
 
     signAndExecute(
-      { transaction: tx },
+      { transaction: tx as any },
       {
         onSuccess: (result) => {
           console.log('Tower minted successfully:', result);

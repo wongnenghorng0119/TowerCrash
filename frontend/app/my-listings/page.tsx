@@ -242,7 +242,7 @@ export default function MyListingsPage() {
     });
 
     signAndExecute(
-      { transaction: tx },
+      { transaction: tx as any },
       {
         onSuccess: () => {
           setMessage(`🎉 Tower listed for ${price} SUI!`);
@@ -272,7 +272,7 @@ export default function MyListingsPage() {
     });
 
     signAndExecute(
-      { transaction: tx },
+      { transaction: tx as any },
       {
         onSuccess: () => {
           setMessage('✅ Listing cancelled');

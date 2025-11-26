@@ -33,7 +33,7 @@ export default function TestPage() {
       console.log('Signing transaction...');
       
       signAndExecute(
-        { transaction: tx },
+        { transaction: tx as any },
         {
           onSuccess: (result) => {
             console.log('Success:', result);

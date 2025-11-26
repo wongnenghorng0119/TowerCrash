@@ -186,7 +186,7 @@ export default function MarketplacePage() {
     });
 
     signAndExecute(
-      { transaction: tx },
+      { transaction: tx as any },
       {
         onSuccess: () => {
           setMessage(`🎉 Tower purchased for ${listing.price} SUI!`);

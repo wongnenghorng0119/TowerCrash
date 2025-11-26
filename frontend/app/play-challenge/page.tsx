@@ -392,7 +392,7 @@ function PlayChallengeContent() {
     });
 
     signAndExecute(
-      { transaction: tx },
+      { transaction: tx as any },
       {
         onSuccess: () => {
           setSubmitted(true);

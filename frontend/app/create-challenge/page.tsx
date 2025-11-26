@@ -111,7 +111,7 @@ export default function CreateChallengePage() {
     });
 
     signAndExecute(
-      { transaction: tx },
+      { transaction: tx as any },
       {
         onSuccess: () => {
           setMessage(`🎉 Challenge created! Prize: ${prize} SUI, Entry: ${fee} SUI`);

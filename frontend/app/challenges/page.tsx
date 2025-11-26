@@ -120,7 +120,7 @@ export default function ChallengesPage() {
     });
 
     signAndExecute(
-      { transaction: tx },
+      { transaction: tx as any },
       {
         onSuccess: () => {
           console.log('Monster minted successfully');

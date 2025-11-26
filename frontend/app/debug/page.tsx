@@ -43,7 +43,7 @@ export default function DebugPage() {
       addLog('💼 Requesting wallet signature...');
 
       signAndExecute(
-        { transaction: tx },
+        { transaction: tx as any },
         {
           onSuccess: (result) => {
             addLog('🎉 Transaction successful!');

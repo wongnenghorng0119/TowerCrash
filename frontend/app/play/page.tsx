@@ -306,7 +306,7 @@ function PlayPageContent() {
     playAndSubmit(tx, towerNftId, GAME_COST * 1_000_000_000, wavesCleared);
 
     signAndExecute(
-      { transaction: tx },
+      { transaction: tx as any },
       {
         onSuccess: (result) => {
           console.log('✅ Result submitted successfully:', result);
