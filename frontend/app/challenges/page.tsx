@@ -130,7 +130,7 @@ export default function ChallengesPage() {
           // Trigger refetch
           refetchMonsters();
         },
-        onError: (error) => {
+        onError: (error: any) => {
           setMessage(`❌ Error: ${error.message}`);
           setLoading(false);
           setShowMintCard(false);

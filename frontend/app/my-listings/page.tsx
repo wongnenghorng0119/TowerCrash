@@ -251,7 +251,7 @@ export default function MyListingsPage() {
           setListPrice('');
           refetchTowers();
         },
-        onError: (error) => {
+        onError: (error: any) => {
           setMessage(`❌ Error: ${error.message}`);
           setLoading(false);
         },
@@ -279,7 +279,7 @@ export default function MyListingsPage() {
           setLoading(false);
           refetchTowers();
         },
-        onError: (error) => {
+        onError: (error: any) => {
           setMessage(`❌ Error: ${error.message}`);
           setLoading(false);
         },

@@ -198,7 +198,7 @@ export default function MarketplacePage() {
             return newSet;
           });
         },
-        onError: (error) => {
+        onError: (error: any) => {
           setMessage(`❌ Error: ${error.message}`);
           setLoading(false);
         },

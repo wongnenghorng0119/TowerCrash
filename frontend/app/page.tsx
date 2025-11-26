@@ -124,7 +124,7 @@ export default function HomePage() {
     signAndExecute(
       { transaction: tx as any },
       {
-        onSuccess: (result) => {
+        onSuccess: (result: any) => {
           console.log('Tower minted successfully:', result);
           setLoading(false);
           setMessage('🎰 Opening mystery box...');
@@ -132,7 +132,7 @@ export default function HomePage() {
           // Trigger refetch
           refetch();
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error('Error:', error);
           setMessage(`Error: ${error.message}`);
           setLoading(false);

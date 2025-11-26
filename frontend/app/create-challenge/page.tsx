@@ -124,7 +124,7 @@ export default function CreateChallengePage() {
             window.location.href = '/challenge-list';
           }, 2000);
         },
-        onError: (error) => {
+        onError: (error: any) => {
           setMessage(`❌ Error: ${error.message}`);
           setLoading(false);
         },

@@ -35,12 +35,12 @@ export default function TestPage() {
       signAndExecute(
         { transaction: tx as any },
         {
-          onSuccess: (result) => {
+          onSuccess: (result: any) => {
             console.log('Success:', result);
             setResult(`Success! ${JSON.stringify(result.effects?.created?.[0])}`);
             setLoading(false);
           },
-          onError: (error) => {
+          onError: (error: any) => {
             console.error('Error:', error);
             setResult(`Error: ${error.message}`);
             setLoading(false);

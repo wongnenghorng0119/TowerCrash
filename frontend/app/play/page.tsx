@@ -308,7 +308,7 @@ function PlayPageContent() {
     signAndExecute(
       { transaction: tx as any },
       {
-        onSuccess: (result) => {
+        onSuccess: (result: any) => {
           console.log('✅ Result submitted successfully:', result);
           setSubmitting(false);
           setSubmitted(true);
@@ -336,7 +336,7 @@ function PlayPageContent() {
             setMessage(`Game completed! Cleared ${wavesCleared} waves. (Need 2+ waves for rewards)`);
           }
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error('❌ Error submitting result:', error);
           setMessage(`❌ Error: ${error.message}`);
           setSubmitting(false);

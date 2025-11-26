@@ -403,7 +403,7 @@ function PlayChallengeContent() {
           }
           setSubmitting(false);
         },
-        onError: (error) => {
+        onError: (error: any) => {
           setMessage(`❌ Error: ${error.message}`);
           setSubmitting(false);
         },

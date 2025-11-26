@@ -45,7 +45,7 @@ export default function DebugPage() {
       signAndExecute(
         { transaction: tx as any },
         {
-          onSuccess: (result) => {
+          onSuccess: (result: any) => {
             addLog('🎉 Transaction successful!');
             addLog(`Digest: ${result.digest}`);
             
@@ -60,7 +60,7 @@ export default function DebugPage() {
             
             setLoading(false);
           },
-          onError: (error) => {
+          onError: (error: any) => {
             addLog(`❌ Transaction failed: ${error.message}`);
             setLoading(false);
           },
