@@ -18,36 +18,32 @@ const networks = {
 
 function NavBar() {
   const pathname = usePathname();
-  const isTownPage = pathname === '/town';
+  const isMainPage = pathname === '/' || pathname === '/town';
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
-        <div className="flex justify-center items-center h-32 relative">
-          <div className="absolute left-0">
-            {/* Empty space for balance */}
-          </div>
-          <div className="flex items-center">
-            {isTownPage && (
-              <img 
-                src="/logo.png" 
-                alt="Tower Defense GameFi" 
-                className="drop-shadow-2xl"
-                style={{
-                  filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))',
-                  height: '100px',
-                  width: 'auto',
-                  maxWidth: '800px'
-                }}
-              />
-            )}
-          </div>
-          <div className="absolute right-0 flex items-center gap-4">
-            <ConnectButton />
-          </div>
+    <>
+      {/* Logo - only on main page */}
+      {isMainPage && (
+        <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50">
+          <img 
+            src="/logo.png" 
+            alt="Tower Defense GameFi" 
+            className="drop-shadow-2xl"
+            style={{
+              filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))',
+              height: '100px',
+              width: 'auto',
+              maxWidth: '800px'
+            }}
+          />
         </div>
+      )}
+      
+      {/* Wallet button - always visible */}
+      <div className="fixed top-4 right-4 z-50">
+        <ConnectButton />
       </div>
-    </nav>
+    </>
   );
 }
 
@@ -67,9 +63,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <WalletProvider autoConnect>
           <div className="min-h-screen">
             <NavBar />
-            <div className="pt-32">
-              {children}
-            </div>
+            {children}
           </div>
         </WalletProvider>
       </SuiClientProvider>

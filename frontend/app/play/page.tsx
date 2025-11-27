@@ -60,6 +60,9 @@ const GAME_PATH = [
   { x: 800, y: 200 },
 ];
 
+const RARITY_NAMES = ['', 'Common', 'Rare', 'Epic', 'Legendary'];
+const RARITY_COLORS = ['', 'text-gray-400', 'text-blue-400', 'text-purple-400', 'text-yellow-400'];
+
 // Tower Card Icon Component
 function TowerCardIcon({ rarity }: { rarity: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -252,32 +255,58 @@ function generateRewardTower(wavesCleared: number) {
 }
 
 function PlayPageContent() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session');
-  
-  // Get multiple towers from URL
-  const towersParam = searchParams.get('towers');
-  const playerTowers: Array<{id: string, damage: number, range: number, fireRate: number, rarity: number}> = towersParam 
-    ? JSON.parse(decodeURIComponent(towersParam))
-    : [];
-  
-  // For backward compatibility
-  const singleTower = searchParams.get('tower');
-  if (singleTower && playerTowers.length === 0) {
-    playerTowers.push({
-      id: singleTower,
-      damage: Number(searchParams.get('damage')) || 30,
-      range: Number(searchParams.get('range')) || 120,
-      fireRate: Number(searchParams.get('fireRate')) || 800,
-      rarity: Number(searchParams.get('rarity')) || 2,
-    });
-  }
-  
-  // Use first tower's ID for blockchain submission (or single tower param)
-  const towerNftId = singleTower || (playerTowers.length > 0 ? playerTowers[0].id : null);
-
   const account = useCurrentAccount();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+
+  // Fetch user's tower NFTs
+  const { data: ownedTowers } = useSuiClientQuery(
+    'getOwnedObjects',
+    {
+      owner: account?.address || '',
+      filter: {
+        StructType: `${PACKAGE_ID}::game::TowerNFT`,
+      },
+      options: {
+        showContent: true,
+      },
+    },
+    {
+      enabled: !!account?.address,
+      refetchInterval: 3000,
+    }
+  );
+
+  const [myTowers, setMyTowers] = useState<Array<{id: string, damage: number, range: number, fireRate: number, rarity: number}>>([]);
+  const [selectedTowerForPlacement, setSelectedTowerForPlacement] = useState<{id: string, damage: number, range: number, fireRate: number, rarity: number} | null>(null);
+  const [placedTowers, setPlacedTowers] = useState<Array<{id: string, damage: number, range: number, fireRate: number, rarity: number}>>([]);
+
+  useEffect(() => {
+    if (ownedTowers?.data) {
+      const towers = ownedTowers.data
+        .map((obj: any) => {
+          const content = obj.data?.content;
+          if (content?.dataType === 'moveObject' && content.fields) {
+            const expectedType = `${PACKAGE_ID}::game::TowerNFT`;
+            if (content.type !== expectedType) return null;
+            
+            return {
+              id: obj.data.objectId,
+              damage: Number(content.fields.damage),
+              range: Number(content.fields.range),
+              fireRate: Number(content.fields.fire_rate),
+              rarity: Number(content.fields.rarity),
+            };
+          }
+          return null;
+        })
+        .filter((t): t is {id: string, damage: number, range: number, fireRate: number, rarity: number} => t !== null);
+      
+      setMyTowers(towers);
+    }
+  }, [ownedTowers]);
+
+  const playerTowers = placedTowers;
+  const towerNftId = placedTowers.length > 0 ? placedTowers[0].id : null;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -572,8 +601,51 @@ function PlayPageContent() {
       return;
     }
     
+    // Check if using new tower selection system
+    if (selectedTowerForPlacement) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      if (isOnPath(x, y)) {
+        setMessage('❌ Cannot build on the path!');
+        return;
+      }
+
+      const tooClose = state.towers.some(
+        (t) => Math.hypot(t.x - x, t.y - y) < 40
+      );
+      if (tooClose) {
+        setMessage('❌ Too close to another tower!');
+        return;
+      }
+
+      const newTower: Tower = {
+        id: `tower-${Date.now()}`,
+        x,
+        y,
+        damage: selectedTowerForPlacement.damage,
+        range: selectedTowerForPlacement.range,
+        fireRate: selectedTowerForPlacement.fireRate,
+        lastFire: 0,
+        rarity: selectedTowerForPlacement.rarity,
+      };
+
+      state.towers.push(newTower);
+      setPlacedTowers([...placedTowers, selectedTowerForPlacement]);
+      setSelectedTowerForPlacement(null);
+      setMessage(`✅ Tower placed! (${placedTowers.length + 1}/${myTowers.length})`);
+      return;
+    }
+    
+    // Old card system (for backward compatibility)
     if (selectedCard === null) {
-      setMessage('Please select a tower card first!');
+      setMessage('Please select a tower from your list first!');
       return;
     }
 
@@ -581,19 +653,16 @@ function PlayPageContent() {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    // Scale coordinates based on canvas size vs display size
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
 
-    // Check if on path
     if (isOnPath(x, y)) {
       setMessage('❌ Cannot build on the path!');
       return;
     }
 
-    // Check if too close to other towers
     const tooClose = state.towers.some(
       (t) => Math.hypot(t.x - x, t.y - y) < 40
     );
@@ -602,7 +671,6 @@ function PlayPageContent() {
       return;
     }
 
-    // Use selected card's tower stats
     const selectedTowerData = availableCards.find(c => c.id === selectedCard)?.tower;
     if (!selectedTowerData) return;
 
@@ -619,7 +687,6 @@ function PlayPageContent() {
 
     state.towers.push(newTower);
     
-    // Mark card as used
     setAvailableCards((cards) =>
       cards.map((card) =>
         card.id === selectedCard ? { ...card, used: true } : card
@@ -1262,6 +1329,50 @@ function PlayPageContent() {
           </div>
 
           <div className="space-y-4">
+            {/* Tower List */}
+            {myTowers.length > 0 && (
+              <div className="bg-gray-800 rounded-xl p-4 border-2 border-blue-500">
+                <h3 className="text-white font-bold mb-2">
+                  🗼 Select Towers to Place
+                </h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {myTowers.map(tower => {
+                    const isPlaced = placedTowers.some(t => t.id === tower.id);
+                    const isSelected = selectedTowerForPlacement?.id === tower.id;
+                    
+                    return (
+                      <button
+                        key={tower.id}
+                        onClick={() => {
+                          if (!isPlaced) {
+                            setSelectedTowerForPlacement(tower);
+                          }
+                        }}
+                        disabled={isPlaced}
+                        className={`w-full p-3 rounded-lg text-left transition-all ${
+                          isPlaced
+                            ? 'bg-gray-700 opacity-50 cursor-not-allowed'
+                            : isSelected
+                            ? 'bg-cyan-600 hover:bg-cyan-700'
+                            : 'bg-gray-700 hover:bg-gray-600'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className={`font-bold ${RARITY_COLORS[tower.rarity]}`}>
+                            {RARITY_NAMES[tower.rarity]}
+                          </span>
+                          {isPlaced && <span className="text-green-400">✓ Placed</span>}
+                        </div>
+                        <div className="text-sm text-gray-300 mt-1">
+                          ⚔️ {tower.damage} | 🎯 {tower.range} | ⚡ {tower.fireRate}ms
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Selected Tower Info */}
             {selectedCard !== null && (
               <div className="bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-2xl p-4 border-2 border-cyan-400 backdrop-blur-sm">

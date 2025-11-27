@@ -3,106 +3,32 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClientQuery } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
-import { mintTower } from '@/lib/contracts';
-import { MINT_COST, PACKAGE_ID } from '@/lib/constants';
+import { MINT_COST, PACKAGE_ID, GAME_STATE_ID } from '@/lib/constants';
 import Link from 'next/link';
 
-interface TowerNFT {
+interface MonsterNFT {
   id: string;
-  damage: number;
-  range: number;
-  fireRate: number;
+  hp: number;
+  speed: number;
+  monsterType: number;
   rarity: number;
 }
 
 const RARITY_NAMES = ['', 'Common', 'Rare', 'Epic', 'Legendary'];
 const RARITY_COLORS = ['', 'text-gray-400', 'text-blue-400', 'text-purple-400', 'text-yellow-400'];
+const TYPE_NAMES = ['', 'Normal', 'Fast', 'Tank'];
+const TYPE_EMOJI = ['', '👹', '⚡', '🛡️'];
 
-// Tower Card Icon Component
-function TowerCardIcon({ rarity }: { rarity: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const rarityColors = {
-      1: { light: '#9e9e9e', mid: '#757575', dark: '#424242', glow: '#bdbdbd' },
-      2: { light: '#42a5f5', mid: '#2196f3', dark: '#1565c0', glow: '#64b5f6' },
-      3: { light: '#ab47bc', mid: '#9c27b0', dark: '#6a1b9a', glow: '#ce93d8' },
-      4: { light: '#ffd54f', mid: '#ffc107', dark: '#f57c00', glow: '#ffe082' },
-    };
-    const colors = rarityColors[rarity as keyof typeof rarityColors] || rarityColors[2];
-
-    const centerX = 64;
-    const centerY = 64;
-    const scale = 1.5;
-
-    ctx.fillStyle = '#2a2a2a';
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI / 3) * i;
-      const x = centerX + Math.cos(angle) * 12 * scale;
-      const y = centerY + 8 * scale + Math.sin(angle) * 12 * scale;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-
-    const bodyGradient = ctx.createLinearGradient(centerX - 10 * scale, 0, centerX + 10 * scale, 0);
-    bodyGradient.addColorStop(0, colors.dark);
-    bodyGradient.addColorStop(0.5, colors.mid);
-    bodyGradient.addColorStop(1, colors.dark);
-    ctx.fillStyle = bodyGradient;
-    ctx.fillRect(centerX - 10 * scale, centerY - 5 * scale, 20 * scale, 15 * scale);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.fillRect(centerX - 8 * scale, centerY - 3 * scale, 5 * scale, 11 * scale);
-
-    const turretGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 8 * scale);
-    turretGradient.addColorStop(0, colors.light);
-    turretGradient.addColorStop(1, colors.mid);
-    ctx.fillStyle = turretGradient;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 8 * scale, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#424242';
-    ctx.fillRect(centerX, centerY - 2 * scale, 14 * scale, 4 * scale);
-
-    ctx.fillStyle = colors.glow;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 3 * scale, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (rarity >= 2) {
-      ctx.fillStyle = colors.glow;
-      ctx.font = 'bold 16px Arial';
-      ctx.textAlign = 'center';
-      const stars = '⭐'.repeat(rarity - 1);
-      ctx.fillText(stars, centerX, centerY - 20 * scale);
-    }
-  }, [rarity]);
-
-  return <canvas ref={canvasRef} width={128} height={128} className="w-32 h-32" />;
-}
-
-export default function LuckyDrawPage() {
+export default function MonsterDrawPage() {
   const account = useCurrentAccount();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
 
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showMintCard, setShowMintCard] = useState(false);
-  const [mintedTower, setMintedTower] = useState<TowerNFT | null>(null);
-  const previousTowerCountRef = useRef(0);
-  const [myTowers, setMyTowers] = useState<TowerNFT[]>([]);
+  const [mintedMonster, setMintedMonster] = useState<MonsterNFT | null>(null);
+  const previousMonsterCountRef = useRef(0);
+  const [myMonsters, setMyMonsters] = useState<MonsterNFT[]>([]);
 
   const { data: balance } = useSuiClientQuery(
     'getBalance',
@@ -118,12 +44,12 @@ export default function LuckyDrawPage() {
 
   const suiBalance = balance ? Number(balance.totalBalance) / 1_000_000_000 : 0;
 
-  const { data: ownedTowers, refetch: refetchTowers } = useSuiClientQuery(
+  const { data: ownedMonsters, refetch: refetchMonsters } = useSuiClientQuery(
     'getOwnedObjects',
     {
       owner: account?.address || '',
       filter: {
-        StructType: `${PACKAGE_ID}::game::TowerNFT`,
+        StructType: `${PACKAGE_ID}::game::MonsterNFT`,
       },
       options: {
         showContent: true,
@@ -136,36 +62,36 @@ export default function LuckyDrawPage() {
   );
 
   useEffect(() => {
-    if (ownedTowers?.data) {
-      const towers: TowerNFT[] = ownedTowers.data
+    if (ownedMonsters?.data) {
+      const monsters: MonsterNFT[] = ownedMonsters.data
         .map((obj: any) => {
           const content = obj.data?.content;
           if (content?.dataType === 'moveObject' && content.fields) {
-            const expectedType = `${PACKAGE_ID}::game::TowerNFT`;
+            const expectedType = `${PACKAGE_ID}::game::MonsterNFT`;
             if (content.type !== expectedType) return null;
             
             return {
               id: obj.data.objectId,
-              damage: Number(content.fields.damage),
-              range: Number(content.fields.range),
-              fireRate: Number(content.fields.fire_rate),
+              hp: Number(content.fields.hp),
+              speed: Number(content.fields.speed),
+              monsterType: Number(content.fields.monster_type),
               rarity: Number(content.fields.rarity),
             };
           }
           return null;
         })
-        .filter((t): t is TowerNFT => t !== null);
+        .filter((m): m is MonsterNFT => m !== null);
 
-      if (showMintCard && !mintedTower && towers.length > previousTowerCountRef.current) {
-        const newTower = towers[0];
-        console.log('New tower detected:', newTower);
-        setMintedTower(newTower);
-        setMessage('🎉 Tower NFT minted!');
+      if (showMintCard && !mintedMonster && monsters.length > previousMonsterCountRef.current) {
+        const newMonster = monsters[0];
+        console.log('New monster detected:', newMonster);
+        setMintedMonster(newMonster);
+        setMessage('🎉 Monster NFT minted!');
       }
 
-      setMyTowers(towers);
+      setMyMonsters(monsters);
     }
-  }, [ownedTowers, showMintCard]);
+  }, [ownedMonsters, showMintCard]);
 
   const handleMint = () => {
     if (!account) {
@@ -173,23 +99,30 @@ export default function LuckyDrawPage() {
       return;
     }
 
-    previousTowerCountRef.current = myTowers.length;
+    previousMonsterCountRef.current = myMonsters.length;
     setLoading(true);
     setShowMintCard(true);
-    setMintedTower(null);
-    setMessage('🎰 Minting tower...');
+    setMintedMonster(null);
+    setMessage('🎰 Minting monster...');
     
     const tx = new Transaction();
-    mintTower(tx, MINT_COST * 1_000_000_000);
+    const [coin] = tx.splitCoins(tx.gas, [MINT_COST * 1_000_000_000]);
+    tx.moveCall({
+      target: `${PACKAGE_ID}::game::mint_monster`,
+      arguments: [
+        tx.object(GAME_STATE_ID),
+        coin,
+      ],
+    });
 
     signAndExecute(
       { transaction: tx as any },
       {
-        onSuccess: (result: any) => {
-          console.log('Tower minted successfully:', result);
+        onSuccess: () => {
+          console.log('Monster minted successfully');
           setLoading(false);
           setMessage('🎰 Opening mystery box...');
-          refetchTowers();
+          refetchMonsters();
         },
         onError: (error: any) => {
           console.error('Error:', error);
@@ -202,14 +135,14 @@ export default function LuckyDrawPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900">
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-6 flex items-center gap-4">
           <Link href="/town" className="text-cyan-300 hover:text-cyan-200 font-bold">
             ← Back to Town
           </Link>
-          <Link href="/monster-draw" className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-6 py-2 rounded-xl font-bold hover:scale-105 transition-transform">
-            👹 Monster Draw
+          <Link href="/lucky-draw" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-xl font-bold hover:scale-105 transition-transform">
+            🗼 Tower Draw
           </Link>
           <Link href="/my-towers" className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-6 py-2 rounded-xl font-bold hover:scale-105 transition-transform">
             🎒 My Bag
@@ -218,9 +151,9 @@ export default function LuckyDrawPage() {
 
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-yellow-200 mb-4" style={{textShadow: '3px 3px 6px rgba(0,0,0,0.5)'}}>
-            🎁 Tower Lucky Draw
+            🎃 Monster Lucky Draw
           </h1>
-          <p className="text-purple-200 text-lg">Open mystery boxes to get random tower NFTs!</p>
+          <p className="text-orange-200 text-lg">Open mystery boxes to get random monster NFTs!</p>
         </div>
 
         {!account ? (
@@ -236,8 +169,8 @@ export default function LuckyDrawPage() {
                   <p className="text-yellow-50 text-2xl font-bold">{suiBalance.toFixed(4)} SUI</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-yellow-200 text-sm font-bold">🗼 My Towers</p>
-                  <p className="text-yellow-50 text-2xl font-bold">{myTowers.length}</p>
+                  <p className="text-yellow-200 text-sm font-bold">👹 My Monsters</p>
+                  <p className="text-yellow-50 text-2xl font-bold">{myMonsters.length}</p>
                 </div>
               </div>
             </div>
@@ -252,7 +185,7 @@ export default function LuckyDrawPage() {
               <div 
                 className="absolute inset-0 bg-cover bg-center opacity-90"
                 style={{
-                  backgroundImage: 'url(/ldbck.png)',
+                  backgroundImage: 'url(/monsterbck.png)',
                 }}
               ></div>
               
@@ -260,7 +193,7 @@ export default function LuckyDrawPage() {
                 <div className="text-center">
                   <div className="mb-6">
                     <img 
-                      src="/ld.png"
+                      src="/mst.png"
                       alt="Mystery Box" 
                       className="w-80 h-80 mx-auto drop-shadow-2xl"
                     />
@@ -268,10 +201,10 @@ export default function LuckyDrawPage() {
                   
                   <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border-2 border-white/20 mb-6">
                     <h2 className="text-2xl font-bold text-yellow-200 mb-3 drop-shadow-lg">
-                      Tower Mystery Box
+                      Monster Mystery Box
                     </h2>
                     <p className="text-white mb-2 drop-shadow-lg text-lg">
-                      Get a random tower with unique stats!
+                      Get a random monster with unique abilities!
                     </p>
                     <p className="text-yellow-300 font-bold text-xl">
                       Cost: {MINT_COST} SUI
@@ -281,21 +214,21 @@ export default function LuckyDrawPage() {
                   <button
                     onClick={handleMint}
                     disabled={!account || loading}
-                    className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white px-8 py-6 rounded-xl font-bold text-2xl hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/50"
+                    className="w-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white px-8 py-6 rounded-xl font-bold text-2xl hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/50"
                   >
-                    {loading ? '✨ Minting...' : `🎁 Open Mystery Box (${MINT_COST} SUI)`}
+                    {loading ? '✨ Minting...' : `🎃 Open Mystery Box (${MINT_COST} SUI)`}
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-2xl p-6 border-2 border-cyan-400">
-              <h3 className="text-2xl font-bold text-cyan-300 mb-4">💡 How It Works</h3>
-              <div className="space-y-3 text-cyan-100">
+            <div className="bg-gradient-to-br from-red-900/50 to-orange-900/50 rounded-2xl p-6 border-2 border-red-400">
+              <h3 className="text-2xl font-bold text-red-300 mb-4">💡 How It Works</h3>
+              <div className="space-y-3 text-orange-100">
                 <p>• Pay {MINT_COST} SUI to open a mystery box</p>
-                <p>• Get a random tower NFT with unique stats</p>
-                <p>• Higher rarity = stronger tower</p>
-                <p>• Use towers in game or trade on market</p>
+                <p>• Get a random monster NFT with unique abilities</p>
+                <p>• Higher rarity = stronger monster</p>
+                <p>• Use monsters to create challenges</p>
               </div>
             </div>
           </>
@@ -304,16 +237,16 @@ export default function LuckyDrawPage() {
 
       {showMintCard && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 rounded-3xl p-8 border-4 border-yellow-400 max-w-md w-full mx-4 shadow-2xl shadow-purple-500/50">
+          <div className="bg-gradient-to-br from-red-600 via-orange-600 to-yellow-600 rounded-3xl p-8 border-4 border-yellow-400 max-w-md w-full mx-4 shadow-2xl shadow-red-500/50">
             <h2 className="text-3xl font-bold text-white text-center mb-6 drop-shadow-lg">
-              ✨ Mystery Box ✨
+              🎃 Monster Box 🎃
             </h2>
             
-            {!mintedTower ? (
+            {!mintedMonster ? (
               <div className="text-center">
                 <div className="w-48 h-48 mx-auto mb-4 animate-bounce">
                   <img 
-                    src="/ld.png" 
+                    src="/mst.png" 
                     alt="Opening..." 
                     className="w-full h-full drop-shadow-2xl"
                   />
@@ -322,27 +255,27 @@ export default function LuckyDrawPage() {
               </div>
             ) : (
               <div className="text-center">
-                <div className="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
-                  <TowerCardIcon rarity={mintedTower.rarity} />
+                <div className="w-32 h-32 mx-auto mb-4 bg-gray-700 rounded-2xl flex items-center justify-center">
+                  <span className="text-6xl">{TYPE_EMOJI[mintedMonster.monsterType]}</span>
                 </div>
-                <p className={`text-3xl font-bold mb-2 drop-shadow-lg ${RARITY_COLORS[mintedTower.rarity]}`}>
-                  {RARITY_NAMES[mintedTower.rarity]}
+                <p className={`text-3xl font-bold mb-2 drop-shadow-lg ${RARITY_COLORS[mintedMonster.rarity]}`}>
+                  {RARITY_NAMES[mintedMonster.rarity]}
                 </p>
-                <p className="text-white text-xl mb-4 drop-shadow-lg">Tower NFT!</p>
+                <p className="text-white text-xl mb-4 drop-shadow-lg">{TYPE_NAMES[mintedMonster.monsterType]} Monster!</p>
                 
                 <div className="bg-black/40 backdrop-blur-sm rounded-xl p-4 mb-4 border-2 border-white/20">
                   <div className="space-y-2 text-left">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">⚔️ Damage:</span>
-                      <span className="text-white font-bold">{mintedTower.damage}</span>
+                      <span className="text-gray-400">❤️ HP:</span>
+                      <span className="text-white font-bold">{mintedMonster.hp}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">🎯 Range:</span>
-                      <span className="text-white font-bold">{mintedTower.range}</span>
+                      <span className="text-gray-400">⚡ Speed:</span>
+                      <span className="text-white font-bold">{mintedMonster.speed}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">⚡ Fire Rate:</span>
-                      <span className="text-white font-bold">{mintedTower.fireRate}ms</span>
+                      <span className="text-gray-400">Type:</span>
+                      <span className="text-white font-bold">{TYPE_NAMES[mintedMonster.monsterType]}</span>
                     </div>
                   </div>
                 </div>
@@ -350,7 +283,7 @@ export default function LuckyDrawPage() {
                 <button
                   onClick={() => {
                     setShowMintCard(false);
-                    setMintedTower(null);
+                    setMintedMonster(null);
                     setLoading(false);
                     setMessage('');
                   }}
