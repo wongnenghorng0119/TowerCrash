@@ -37,16 +37,46 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Town Map */}
+      {/* Town Map - Desktop: absolute positioning, Mobile: grid layout */}
       <div 
-        className="relative w-full h-full px-20 py-8 flex items-center justify-center"
+        className="relative w-full h-full px-4 sm:px-8 md:px-20 py-8 overflow-auto"
         onMouseMove={handleMouseMove}
       >
+        {/* Mobile Grid Layout */}
+        <div className="md:hidden grid grid-cols-2 gap-4 max-w-md mx-auto pt-20">
+          <Link href="/lucky-draw" className="flex flex-col items-center p-4 bg-black/20 rounded-xl hover:bg-black/30 transition-all">
+            <img src="/luckydraw.png" alt="Lucky Draw" className="w-24 h-auto mb-2" />
+            <span className="text-white font-bold text-sm">🎁 Lucky Draw</span>
+          </Link>
+          <Link href="/challenge-list" className="flex flex-col items-center p-4 bg-black/20 rounded-xl hover:bg-black/30 transition-all">
+            <img src="/challenge.png" alt="Challenge" className="w-24 h-auto mb-2" />
+            <span className="text-white font-bold text-sm">⚔️ Challenge</span>
+          </Link>
+          <Link href="/play" className="flex flex-col items-center p-4 bg-black/20 rounded-xl hover:bg-black/30 transition-all col-span-2">
+            <img src="/game.png" alt="Game Arena" className="w-32 h-auto mb-2" />
+            <span className="text-white font-bold">🎮 Game Arena</span>
+          </Link>
+          <Link href="/my-towers" className="flex flex-col items-center p-4 bg-black/20 rounded-xl hover:bg-black/30 transition-all">
+            <img src="/tower.png" alt="My Bag" className="w-24 h-auto mb-2" />
+            <span className="text-white font-bold text-sm">🎒 My Bag</span>
+          </Link>
+          <Link href="/market" className="flex flex-col items-center p-4 bg-black/20 rounded-xl hover:bg-black/30 transition-all">
+            <img src="/marketplace.png" alt="Market" className="w-24 h-auto mb-2" />
+            <span className="text-white font-bold text-sm">🏪 Market</span>
+          </Link>
+          <Link href="/history" className="flex flex-col items-center p-4 bg-black/20 rounded-xl hover:bg-black/30 transition-all col-span-2">
+            <img src="/history.png" alt="History" className="w-20 h-auto mb-2" />
+            <span className="text-white font-bold text-sm">📋 History</span>
+          </Link>
+        </div>
+
+        {/* Desktop Absolute Positioning */}
+        <div className="hidden md:flex items-center justify-center w-full h-full relative">
+        
         
         {/* Center Top - Game Arena (large) */}
         <Link 
           href="/play"
- 
           className="absolute top-[22%] left-1/2 transform -translate-x-1/2 cursor-pointer hover:scale-105 transition-all duration-300 z-30"
           onMouseEnter={() => setHoveredBuilding('🎮 Game Arena')}
           onMouseLeave={() => setHoveredBuilding(null)}
@@ -54,7 +84,7 @@ export default function HomePage() {
           <img 
             src="/game.png" 
             alt="Game Arena" 
-            className="w-96 h-auto drop-shadow-2xl"
+            className="md:w-96 h-auto drop-shadow-2xl"
           />
         </Link>
 
@@ -68,7 +98,7 @@ export default function HomePage() {
           <img 
             src="/luckydraw.png" 
             alt="Lucky Draw" 
-            className="w-60 h-auto drop-shadow-2xl"
+            className="md:w-60 h-auto drop-shadow-2xl"
           />
         </Link>
 
@@ -82,7 +112,7 @@ export default function HomePage() {
           <img 
             src="/challenge.png" 
             alt="Challenge Hall" 
-            className="w-60 h-auto drop-shadow-2xl"
+            className="md:w-60 h-auto drop-shadow-2xl"
           />
         </Link>
 
@@ -96,7 +126,7 @@ export default function HomePage() {
           <img 
             src="/tower.png" 
             alt="Tower Bag" 
-            className="w-56 h-auto drop-shadow-2xl"
+            className="md:w-56 h-auto drop-shadow-2xl"
           />
         </Link>
 
@@ -110,7 +140,7 @@ export default function HomePage() {
           <img 
             src="/marketplace.png" 
             alt="Marketplace" 
-            className="w-60 h-auto drop-shadow-2xl"
+            className="md:w-60 h-auto drop-shadow-2xl"
           />
         </Link>
 
@@ -124,9 +154,10 @@ export default function HomePage() {
           <img 
             src="/history.png" 
             alt="History Board" 
-            className="w-44 h-auto drop-shadow-2xl"
+            className="md:w-44 h-auto drop-shadow-2xl"
           />
         </Link>
+        </div>
       </div>
     </div>
   );
