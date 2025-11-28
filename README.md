@@ -9,7 +9,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 
-[🎮 Play Now](https://tower-defense-gamefi.vercel.app) • [📖 Documentation](#-game-features) • [🚀 Quick Start](#-quick-start) • [🎯 Roadmap](#-roadmap)
+[🎮 Play Now](https://tower-crash-fnix.vercel.app) • [📹 Watch Demo](https://www.youtube.com/watch?v=XD25M8ozAd8) • [📖 Documentation](#-game-features) • [🚀 Quick Start](#-quick-start)
 
 </div>
 
@@ -163,7 +163,10 @@ Before you begin, ensure you have the following installed:
 ### 🎮 Play Now (Easiest)
 
 Just visit our deployed version:
-👉 **[https://tower-defense-gamefi.vercel.app](https://tower-defense-gamefi.vercel.app)**
+👉 **[https://tower-crash-fnix.vercel.app](https://tower-crash-fnix.vercel.app)**
+
+Watch the demo video:
+📹 **[YouTube Demo](https://www.youtube.com/watch?v=XD25M8ozAd8)**
 
 1. Connect your Sui wallet
 2. Get testnet SUI from the faucet
@@ -619,9 +622,10 @@ Have an idea? We'd love to hear it!
 
 ### 🔗 Links
 
-- 🌐 **Website**: [towerdefensegamefi.com](https://tower-defense-gamefi.vercel.app)
+- 🌐 **Website**: [tower-crash-fnix.vercel.app](https://tower-crash-fnix.vercel.app)
+- � **Diemo Video**: [Watch on YouTube](https://www.youtube.com/watch?v=XD25M8ozAd8)
 - 📱 **GitHub**: [View source](https://github.com/yourusername/tower-defense-gamefi)
-- 🎮 **Play**: [Launch game](https://tower-defense-gamefi.vercel.app)
+- 🎮 **Play**: [Launch game](https://tower-crash-fnix.vercel.app)
 - 📊 **Explorer**: [View contract](https://suiscan.xyz/testnet/object/0x59eddd626b56b87be2673bdfa42d1cf5a2fa4703752781b9e2bb4ff623d218ec)
 
 </td>
@@ -680,7 +684,7 @@ If you like this project, please give it a ⭐ on GitHub!
 
 Made with ❤️ by the Tower Defense GameFi Team
 
-[🎮 Play Now](https://tower-defense-gamefi.vercel.app) • [⭐ Star on GitHub](https://github.com/yourusername/tower-defense-gamefi) • [🐦 Follow Us](https://twitter.com/yourhandle)
+[🎮 Play Now](https://tower-crash-fnix.vercel.app) • [📹 Watch Demo](https://www.youtube.com/watch?v=XD25M8ozAd8) • [⭐ Star on GitHub](https://github.com/yourusername/tower-defense-gamefi)
 
 ---
 

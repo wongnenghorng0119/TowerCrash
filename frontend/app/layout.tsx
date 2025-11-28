@@ -3,8 +3,13 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'Lucky Treasure Box - Win Big on Sui',
-  description: 'Open treasure boxes, win up to 10x rewards, and collect rare NFT badges!',
+  title: 'Tower Defense GameFi - Play to Earn on Sui',
+  description: 'A blockchain tower defense game on Sui Network. Mint NFT towers and monsters, play strategic gameplay, earn rewards, and trade on the marketplace!',
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({
